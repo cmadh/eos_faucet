@@ -5,9 +5,9 @@ import tornado.httpserver
 import json
 import requests
 
-import eosapi
 import wallet
 
+import eosapi
 import os
 import re
 import ratelimit
@@ -43,16 +43,12 @@ def is_valid_newaccount_name(account_name):
   return len(account_name) == 12 and not re.search(r'[^a-z1-5\.]', account_name)
 
 def unlock_wallet():
-  param = json.dumps([
-    wallet.NAME,
-    wallet.PASSWD
-  ])
-  response = requests.request("POST", eosapi.WALLET_UNLOCK, data=param)
-  return response.status_code == 200
+  response = os.system("cleos wallet unlock --name {} --password {}".format(wallet.NAME, wallet.PASSWD))
+  return response == 0
 
 def is_wallet_locked():
-  response = requests.request("POST", eosapi.WALLET_GET_PUBLIC_KEYS)
-  return response.status_code != 200
+  response = os.system("cleos wallet list keys");
+  return response == 0
 
 def get_first_arg_name_from_request(request):
   args = request.arguments.keys()
@@ -106,7 +102,7 @@ class GetTokenHandler(tornado.web.RequestHandler):
       p['from']     = wallet.ACCOUNT
       p['to']       = data['account']
       p['quantity'] = single_get_token_call_amount
-      p['symbol']   = "EOS"
+      p['symbol']   = "UZE"
       if data.has_key('memo'): p['memo']   = data['memo']
       else:                    p['memo']   = ''
       return p
@@ -114,8 +110,7 @@ class GetTokenHandler(tornado.web.RequestHandler):
       return None
 
   def _os_cmd_transfer(self, param):
-    cmdline = 'cleos --url {} transfer {} {} "{} {}" {}'.format(eosapi.NODEOS_URL,
-                                                                param['from'],
+    cmdline = 'cleos transfer {} {} "{} {}" {}'.format(param['from'],
                                                                 param['to'],
                                                                 param['quantity'],
                                                                 param['symbol'],
@@ -182,14 +177,14 @@ class CreateAccountHandler(tornado.web.RequestHandler):
       'account':        account_name,
       'owner_key':      owner_key,
       'active_key':     active_key,
-      'stake-cpu':      '1 EOS',
-      'stake-net':      '1 EOS',
+      'stake-cpu':      '1 UZE',
+      'stake-net':      '1 UZE',
       'buy-ram-kbytes': 8
     }
     return p
 
   def _os_cmd_create_account(self, p):
-    cmdline = 'cleos --url {} system newaccount --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {} {} {} {} {}'.format(
+    cmdline = 'cleos system newaccount --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {} {} {} {} {}'.format(
       eosapi.NODEOS_URL,
       p['stake-net'],
       p['stake-cpu'],
@@ -216,11 +211,6 @@ class CreateAccountHandler(tornado.web.RequestHandler):
       write_json_response(self, failmsg, 400)
       return
 
-    if account_exists(name):
-      failmsg = {'msg': 'failed, account \'{}\' exists already'.format(name)}
-      write_json_response(self, failmsg, 400)
-      return
-
     owner_key = generate_key()
     active_key = generate_key()
     if owner_key and active_key:
@@ -234,7 +224,7 @@ class CreateAccountHandler(tornado.web.RequestHandler):
         }
         write_json_response(self, retmsg)
       else:
-        failmsg = {'msg': 'failed, failed to createa account'}
+        failmsg = {'msg': 'failed, failed to create account'}
         write_json_response(self, failmsg, 400)
     else:
       failmsg = {'msg': 'failed, failed to generate keys'}
