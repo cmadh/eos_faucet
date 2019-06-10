@@ -43,7 +43,7 @@ def is_valid_newaccount_name(account_name):
   return len(account_name) == 12 and not re.search(r'[^a-z1-5\.]', account_name)
 
 def unlock_wallet():
-  response = os.system("cleos wallet unlock --name {} --password {}".format(wallet.NAME, wallet.PASSWD))
+  response = os.system("/root/opt/eosio/bin/cleos wallet unlock --name {} --password {}".format(wallet.NAME, wallet.PASSWD))
   return response == 0
 
 def get_first_arg_name_from_request(request):
@@ -63,7 +63,7 @@ def account_exists(account_name):
     return False
 
 def generate_key():
-  ret = os.popen('cleos create key').read()
+  ret = os.popen('/root/opt/eosio/bin/cleos create key').read()
   array = ret.split()
   if len(array) == 6:
     return { 'private': array[2], 'public': array[5] }
@@ -93,7 +93,7 @@ class GetTokenHandler(tornado.web.RequestHandler):
       return None
 
   def _os_cmd_transfer(self, param):
-    cmdline = 'cleos transfer {} {} "{} {}" {}'.format(param['from'],
+    cmdline = '/root/opt/eosio/bin/cleos transfer {} {} "{} {}" {}'.format(param['from'],
                                                                 param['to'],
                                                                 param['quantity'],
                                                                 param['symbol'],
@@ -102,7 +102,7 @@ class GetTokenHandler(tornado.web.RequestHandler):
     return result == 0
 
   def _make_transfer(self, p):
-    if unlock_wallet_if_locked():
+    if unlock_wallet():
       return self._os_cmd_transfer(p)
     else:
       return False
@@ -167,7 +167,7 @@ class CreateAccountHandler(tornado.web.RequestHandler):
     return p
 
   def _os_cmd_create_account(self, p):
-    cmdline = 'cleos system newaccount --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {} {} {} {} {}'.format(
+    cmdline = '/root/opt/eosio/bin/cleos system newaccount --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {} {} {} {} {}'.format(
       eosapi.NODEOS_URL,
       p['stake-net'],
       p['stake-cpu'],
