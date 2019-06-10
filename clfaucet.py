@@ -46,10 +46,6 @@ def unlock_wallet():
   response = os.system("cleos wallet unlock --name {} --password {}".format(wallet.NAME, wallet.PASSWD))
   return response == 0
 
-def is_wallet_locked():
-  response = os.system("cleos wallet list keys");
-  return response == 0
-
 def get_first_arg_name_from_request(request):
   args = request.arguments.keys()
   if len(args) == 1:
@@ -73,19 +69,6 @@ def generate_key():
     return { 'private': array[2], 'public': array[5] }
   else:
     return None
-
-def unlock_wallet_if_locked():
-  unlocked = False
-  if is_wallet_locked():
-    print('wallet "{}" locked, try to unlock...'.format(wallet.NAME))
-    if unlock_wallet():
-      unlocked = True
-      print('wallet "{}" unlocked!'.format(wallet.NAME))
-    else:
-      print('wallet "{}" unlock failed'.format(wallet.NAME))
-  else:
-    unlocked = True
-  return unlocked
 
 
 # ------------------------------------------------------------------------------------------
@@ -198,7 +181,7 @@ class CreateAccountHandler(tornado.web.RequestHandler):
     return result == 0
 
   def _create_account(self, p):
-    if unlock_wallet_if_locked():
+    if unlock_wallet():
       return self._os_cmd_create_account(p)
     else:
       return False
@@ -211,16 +194,15 @@ class CreateAccountHandler(tornado.web.RequestHandler):
       write_json_response(self, failmsg, 400)
       return
 
-    owner_key = generate_key()
-    active_key = generate_key()
-    if owner_key and active_key:
-      p = self._assembly_args(name, owner_key['public'], active_key['public'])
+    key = generate_key()
+    if key:
+      p = self._assembly_args(name, key['public'], key['public'])
       if self._create_account(p):
         ip_24h_newaccount_amount_limiter.increase_amount(1, self)
         retmsg = {
           'msg':      'succeeded',
           'account':  name,
-          'keys':     { 'owner_key':  owner_key, 'active_key': active_key }
+          'keys':     { 'owner_key':  key, 'active_key': key }
         }
         write_json_response(self, retmsg)
       else:
