@@ -43,7 +43,7 @@ def is_valid_newaccount_name(account_name):
   return len(account_name) == 12 and not re.search(r'[^a-z1-5\.]', account_name)
 
 def unlock_wallet():
-  response = os.system("/root/opt/eosio/bin/cleos wallet unlock --name {} --password {}".format(wallet.NAME, wallet.PASSWD))
+  response = os.system("/root/opt/eosio/bin/cleos wallet unlock --password {}".format(wallet.PASSWD))
   return response == 0
 
 def get_first_arg_name_from_request(request):
