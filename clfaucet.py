@@ -167,15 +167,14 @@ class CreateAccountHandler(tornado.web.RequestHandler):
     return p
 
   def _os_cmd_create_account(self, p):
-    cmdline = '/root/opt/eosio/bin/cleos system newaccount --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {} {} {} {} {}'.format(
-      eosapi.NODEOS_URL,
-      p['stake-net'],
-      p['stake-cpu'],
-      p['buy-ram-kbytes'],
-      p['creator'],
-      p['account'],
-      p['owner_key'],
-      p['active_key']
+    cmdline = '/root/opt/eosio/bin/cleos system newaccount {} {} {} {} --stake-net \'{}\' --stake-cpu \'{}\' --buy-ram-kbytes {}'.format(
+        p['creator'],
+        p['account'],
+        p['owner_key'],
+        p['active_key'],
+        p['stake-net'],
+        p['stake-cpu'],
+        p['buy-ram-kbytes']
     )
     result = os.system(cmdline)
     return result == 0
