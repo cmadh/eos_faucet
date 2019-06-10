@@ -44,7 +44,7 @@ def is_valid_newaccount_name(account_name):
 
 def unlock_wallet():
   response = os.system("/root/opt/eosio/bin/cleos wallet unlock --password {}".format(wallet.PASSWD))
-  return response == 0
+  return 1
 
 def get_first_arg_name_from_request(request):
   args = request.arguments.keys()
