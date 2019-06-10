@@ -63,7 +63,7 @@ def account_exists(account_name):
     return False
 
 def generate_key():
-  ret = os.popen('/root/opt/eosio/bin/cleos create key').read()
+  ret = os.popen('/root/opt/eosio/bin/cleos create key --to-console').read()
   array = ret.split()
   if len(array) == 6:
     return { 'private': array[2], 'public': array[5] }
